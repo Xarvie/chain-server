@@ -1,4 +1,4 @@
-PROJECT(server)
+PROJECT(chain-server)
 cmake_minimum_required (VERSION 3.2)
 list(APPEND CMAKE_MODULE_PATH
   "${CMAKE_SOURCE_DIR}/cmake/macros")
@@ -8,14 +8,12 @@ set(CMAKE_CXX_STANDARD 17)
 # cmake .. -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND"
 PickIncludeDirectories(
     ${CMAKE_CURRENT_SOURCE_DIR}/code
-    #${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/chain-net/code/chain-net
     INCLUDEDIRS
     # Exclude
     ${CMAKE_CURRENT_SOURCE_DIR}/build)
 
 PickSourceFiles(
     ${CMAKE_CURRENT_SOURCE_DIR}/code
-    #${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/chain-net/code/chain-net
     CODEFILES
     # Exclude
     ${CMAKE_CURRENT_SOURCE_DIR}/build)
@@ -41,15 +39,15 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
     #set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -g")
 ENDIF()
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -g")
-ADD_EXECUTABLE(server
+ADD_EXECUTABLE(chain-server
     ${CODEFILES})
-target_include_directories(server
+target_include_directories(chain-server
         PUBLIC ${INCLUDEDIRS})
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Windows")
-    target_link_libraries(server pthread ws2_32)
+    target_link_libraries(chain-server pthread ws2_32)
 ELSE()
-    target_link_libraries(server pthread)
+    target_link_libraries(chain-server pthread)
 ENDIF()
 
 
