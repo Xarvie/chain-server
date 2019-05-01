@@ -5,7 +5,7 @@ list(APPEND CMAKE_MODULE_PATH
 include(AutoCollect)
 set(CMAKE_CXX_STANDARD 17)
 # cd build
-# cmake .. -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND"
+# cmake .. -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" -DCMAKE_CXX_FLAGS="-static"
 PickIncludeDirectories(
     ${CMAKE_CURRENT_SOURCE_DIR}/code
     INCLUDEDIRS
@@ -32,6 +32,20 @@ PickSourceFiles(
         # Exclude
         ${CMAKE_CURRENT_SOURCE_DIR}/build)
 
+PickIncludeDirectories(
+        #${CMAKE_CURRENT_SOURCE_DIR}/code
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/flatbuffers/include
+        INCLUDEDIRS
+        # Exclude
+        ${CMAKE_CURRENT_SOURCE_DIR}/build)
+PickSourceFiles(
+        #${CMAKE_CURRENT_SOURCE_DIR}/code
+        ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/flatbuffers/include
+        CODEFILES
+        # Exclude
+        ${CMAKE_CURRENT_SOURCE_DIR}/build)
+
+
 MakeFilter(
     ${CMAKE_CURRENT_SOURCE_DIR}/code)
 
@@ -45,9 +59,11 @@ target_include_directories(chain-server
         PUBLIC ${INCLUDEDIRS})
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Windows")
-    target_link_libraries(chain-server pthread ws2_32)
+    target_link_libraries(chain-server pthread ws2_32
+            ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/flatbuffers/lib/libflatbuffers.a)
 ELSE()
-    target_link_libraries(chain-server pthread)
+    target_link_libraries(chain-server pthread
+            ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/flatbuffers/lib/libflatbuffers.a)
 ENDIF()
 
 

@@ -1,0 +1,9 @@
+namespace FlatIDL;
+
+table Msg1 {
+    int1 : int;
+    str1 : string;
+    str2 : string;
+}
+
+root_type Msg1;
