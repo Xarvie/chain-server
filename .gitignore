@@ -31,5 +31,13 @@
 *.out
 *.app
 
+# For flatbuffers generator
+!flatc.exe
+!flathash.exe
+!flatsamplebfbs.exe
+!flatsamplebinary.exe
+!flatsampletext.exe
+!flattests.exe
+
 .idea
 .vscode
