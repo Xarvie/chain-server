@@ -1,4 +1,3 @@
-
 #include "MessageDispatcher.h"
 
 int main() {
