@@ -39,5 +39,7 @@
 !flatsampletext.exe
 !flattests.exe
 
+!libflatbuffers.a
+
 .idea
 .vscode
