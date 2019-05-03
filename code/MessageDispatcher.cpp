@@ -1,6 +1,7 @@
 #include "MessageDispatcher.h"
 #include "x_generated.h"
 #include "string"
+#include "Tag.h"
 
 MessageDispatcher::MessageDispatcher(int port, int maxWorker) : Poller(port, maxWorker) {
     flatbuffers::FlatBufferBuilder builder;
@@ -31,65 +32,66 @@ int MessageDispatcher::onReadMsg(Session &conn, int bytesNum) {
         offset += msgLen;
         leftSize -= msgLen;
         int flatLen = msgLen - 8;
-        switch (flatTag) {
-            case 1: {
-                flatbuffers::FlatBufferBuilder builder_out;
-                builder_out.PushBytes(flatBuf, flatLen);
-
-                flatbuffers::Verifier verify(builder_out.GetCurrentBufferPointer(), builder_out.GetSize());
-                bool verify_flag = FlatIDL::VerifyMsg1Buffer(verify);
-                if (!verify_flag) {
-                    return -1;
-                }
-
-                auto msg1 = FlatIDL::GetMsg1(builder_out.GetCurrentBufferPointer());
-                std::cout << msg1->str1()->str() << std::endl;
-
-
-
-                {
-                    flatbuffers::FlatBufferBuilder builder;
-                    auto int1 = 1;
-                    auto str1 = builder.CreateString("str1");
-                    auto str2 = builder.CreateString("str2");
-
-                    auto msg1 = FlatIDL::CreateMsg1(builder, int1, str1, str2);
-                    builder.Finish(msg1);
-
-                    unsigned char *msg1buff = builder.GetBufferPointer();
-                    int msg1len = builder.GetSize();
-                    unsigned char * s = (unsigned char*)xmalloc(msg1len + 4 + 4);
-                    int msgsize = msg1len + 4 + 4;
-                    *(((int*)s) + 0) = msgsize;
-                    *(((int*)s) + 1) = 1;
-                    memcpy(((int*)s) + 2, msg1buff, msg1len);
-
-                    Msg msg = {0};
-                    msg.buff = s;
-                    msg.len = msgsize;
-                    this->sendMsg(conn, msg);//TODO force send
-                    xfree(s);
-                }
-
-                break;
-            }
-            case 2: {
-                break;
-            }
-            default: {
-                abort();
-            }
-        }
-
+        flatbuffers::FlatBufferBuilder builder_out;
+        builder_out.PushBytes(flatBuf, flatLen);
+        flatbuffers::Verifier verify(builder_out.GetCurrentBufferPointer(), builder_out.GetSize());
+        this->onRecvMsg(conn, flatTag, builder_out, verify);
     }
-
-    Msg msg = {0};
-    msg.buff = conn.readBuffer.buff;
-    msg.len = conn.readBuffer.size;
-    //this->sendMsg(conn, msg);
-    return bytesNum;
+    return offset;
 }
 
-int MessageDispatcher::onRecvProto(Session &conn, int bytesNum) {
+int MessageDispatcher::onRecvMsg(Session &conn, int tag, flatbuffers::FlatBufferBuilder &reqBuilder,
+                                 flatbuffers::Verifier &verify) {
+    switch (tag) {
+        case TEST_TAG: {
+            return this->handleTestTag(conn, tag, reqBuilder, verify);
+        }
+        case TEST_TAG2: {
+            break;
+        }
+        default: {
+            abort();
+        }
+    }
+
+    return 0;
+}
+
+int MessageDispatcher::sendFlatMsg(Session &conn, int tag, flatbuffers::FlatBufferBuilder &builder) {
+    unsigned char *msg1buff = builder.GetBufferPointer();
+    int msg1len = builder.GetSize();
+
+    int head[2];
+    head[0] = 4 + 4 + msg1len;
+    head[1] = tag;
+
+    Msg msg = {0};
+    msg.buff = (unsigned char *) head;
+    msg.len = 8;
+    this->sendMsg(conn, msg);
+
+    msg.buff = (unsigned char *) msg1buff;
+    msg.len = msg1len;
+    this->sendMsg(conn, msg);
+    return 0;
+}
+
+int MessageDispatcher::handleTestTag(Session &conn, int tag, flatbuffers::FlatBufferBuilder &reqBuilder,
+                                     flatbuffers::Verifier &verify) {
+    if (!FlatIDL::VerifyMsg1Buffer(verify))
+        return -1;
+    auto recvMsg1 = FlatIDL::GetMsg1(reqBuilder.GetCurrentBufferPointer());
+    std::cout << recvMsg1->str1()->str() << std::endl;
+
+    {
+        flatbuffers::FlatBufferBuilder rspBuilder;
+        auto int1 = TEST_TAG;
+        auto str1 = rspBuilder.CreateString("str1");
+        auto str2 = rspBuilder.CreateString("str2");
+        auto rspMsg1 = FlatIDL::CreateMsg1(rspBuilder, int1, str1, str2);
+        rspBuilder.Finish(rspMsg1);
+
+        this->sendFlatMsg(conn, 1, rspBuilder);
+    }
     return 0;
 }
