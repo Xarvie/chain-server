@@ -4,12 +4,7 @@
 #include "Tag.h"
 
 MessageDispatcher::MessageDispatcher(int port, int maxWorker) : Poller(port, maxWorker) {
-    flatbuffers::FlatBufferBuilder builder;
-    auto str3 = builder.CreateString("str3");
-    auto orc = FlatIDL::CreateMsg1(builder, 1, 2, str3);
-    builder.Finish(orc);
-    unsigned char *buff = builder.GetBufferPointer();
-    int len = builder.GetSize();
+
 }
 
 int MessageDispatcher::onReadMsg(Session &conn, int bytesNum) {
@@ -35,7 +30,9 @@ int MessageDispatcher::onReadMsg(Session &conn, int bytesNum) {
         flatbuffers::FlatBufferBuilder builder_out;
         builder_out.PushBytes(flatBuf, flatLen);
         flatbuffers::Verifier verify(builder_out.GetCurrentBufferPointer(), builder_out.GetSize());
+        lock.lock();
         this->onRecvMsg(conn, flatTag, builder_out, verify);
+        lock.unlock();
     }
     return offset;
 }

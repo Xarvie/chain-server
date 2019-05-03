@@ -16,6 +16,7 @@ public:
 public:
     int handleTestTag(Session &conn, int tag, flatbuffers::FlatBufferBuilder &reqBuilder,
                       flatbuffers::Verifier &verify);
+    std::mutex lock;
 };
 
 
