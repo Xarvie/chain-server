@@ -1,3 +1,6 @@
 [submodule "thirdparty/chain-net"]
 	path = thirdparty/chain-net
 	url = https://github.com/Xarvie/chain-net
+[submodule "thirdparty/chain-socket"]
+	path = thirdparty/chain-socket
+	url = https://github.com/Xarvie/chain-socket.git
